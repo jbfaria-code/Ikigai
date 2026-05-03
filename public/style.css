@@ -472,6 +472,13 @@ kbd {
   user-select: none;
 }
 
+.results-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
 .btn-close {
   display: flex;
   align-items: center;
@@ -485,12 +492,43 @@ kbd {
   cursor: pointer;
   font-family: inherit;
   transition: all .2s;
-  margin-bottom: 24px;
 }
 
 .btn-close:hover {
   background: rgba(255,255,255,.18);
   color: #fff;
+}
+
+.btn-print {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(196,154,42,.2);
+  border: 1px solid rgba(196,154,42,.4);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  font-size: 12.5px;
+  color: var(--gold);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .2s;
+}
+
+.btn-print:hover {
+  background: rgba(196,154,42,.35);
+  color: #F0C840;
+}
+
+/* ─── Print styles ─── */
+@media print {
+  .header, .input-area, .results-hero-actions, #close-results, #print-btn { display: none !important; }
+  .results-overlay { position: static; animation: none; background: white; }
+  .results-hero { background: #1E1442; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .results-panel { padding: 0; }
+  .results-content { padding: 24px; }
+  section + section { margin-top: 32px; }
+  .dimension-card, .intersection-card, .opportunity-card { break-inside: avoid; }
+  .diagram-wrapper svg { max-width: 400px; }
 }
 
 .results-hero-title {
