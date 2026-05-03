@@ -92,7 +92,7 @@ def static_files(path):
     return send_from_directory("public", path)
 
 
-@app.route("/api/welcome")
+@app.route("/api/welcome", methods=["GET", "POST"])
 def welcome():
     messages = [{"role": "user", "content": "Hello, I want to discover my Ikigai."}]
     return stream_messages(messages, max_tokens=512)

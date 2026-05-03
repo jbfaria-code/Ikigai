@@ -360,6 +360,17 @@ function loadVoices() {
 // Pre-load voices as soon as possible
 if (synth) loadVoices();
 
+// Safari requires a user gesture before speechSynthesis works — unlock on first interaction
+let ttsUnlocked = false;
+function unlockTTS() {
+  if (ttsUnlocked || !synth) return;
+  ttsUnlocked = true;
+  const u = new SpeechSynthesisUtterance('');
+  synth.speak(u);
+}
+document.addEventListener('click', unlockTTS, { once: true });
+document.addEventListener('keydown', unlockTTS, { once: true });
+
 async function speak(text) {
   if (!state.ttsEnabled || !synth) return;
   synth.cancel();
