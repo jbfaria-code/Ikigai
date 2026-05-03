@@ -53,7 +53,12 @@ function createMessageEl(role) {
 function setInputEnabled(enabled) {
   userInput.disabled = !enabled;
   sendBtn.disabled   = !enabled;
-  if (enabled) userInput.focus();
+  if (enabled) {
+    userInput.value = '';
+    autoResize();
+    sendBtn.disabled = true;
+    userInput.focus();
+  }
 }
 
 function updateSynthesizeBtn() {
