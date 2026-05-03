@@ -371,17 +371,17 @@ function unlockTTS() {
 document.addEventListener('click', unlockTTS, { once: true });
 document.addEventListener('keydown', unlockTTS, { once: true });
 
-async function speak(text) {
+function speak(text) {
   if (!state.ttsEnabled || !synth) return;
   synth.cancel();
   const clean = text.replace(/[*_`#>]/g, '').replace(/\n+/g, ' ').trim();
   ttsUtterance = new SpeechSynthesisUtterance(clean);
   ttsUtterance.rate  = 0.92;
   ttsUtterance.pitch = 1.0;
-  const voices = cachedVoices.length ? cachedVoices : await loadVoices();
-  const preferred = voices.find(v => /samantha|karen|daniel|moira|rishi/i.test(v.name))
-    || voices.find(v => v.lang.startsWith('en-') && v.localService)
-    || voices.find(v => v.lang.startsWith('en'));
+  // Use pre-cached voices only — no await so Safari doesn't block audio
+  const preferred = cachedVoices.find(v => /samantha|karen|daniel|moira|rishi/i.test(v.name))
+    || cachedVoices.find(v => v.lang.startsWith('en-') && v.localService)
+    || cachedVoices.find(v => v.lang.startsWith('en'));
   if (preferred) ttsUtterance.voice = preferred;
   synth.speak(ttsUtterance);
 }
@@ -394,7 +394,13 @@ ttsToggle.addEventListener('click', () => {
   state.ttsEnabled = !state.ttsEnabled;
   ttsToggle.classList.toggle('active', state.ttsEnabled);
   ttsLabel.textContent = state.ttsEnabled ? 'Reading aloud' : 'Read aloud';
-  if (!state.ttsEnabled) stopSpeaking();
+  if (state.ttsEnabled) {
+    // Speak immediately on click — this is the user gesture Safari needs
+    ttsUnlocked = true;
+    speak('Read aloud is now on.');
+  } else {
+    stopSpeaking();
+  }
 });
 
 // ─── Speech-to-Text ───────────────────────────────────────────────────────────
