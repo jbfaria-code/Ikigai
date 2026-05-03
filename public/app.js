@@ -341,53 +341,36 @@ async function synthesize() {
   }
 }
 
-// ─── Text-to-Speech ───────────────────────────────────────────────────────────
-const synth = window.speechSynthesis;
-let ttsUtterance = null;
-let cachedVoices = [];
+// ─── Text-to-Speech (OpenAI) ─────────────────────────────────────────────────
+let currentAudio = null;
 
-function loadVoices() {
-  return new Promise(resolve => {
-    const v = synth.getVoices();
-    if (v.length) { cachedVoices = v; resolve(v); return; }
-    synth.addEventListener('voiceschanged', () => {
-      cachedVoices = synth.getVoices();
-      resolve(cachedVoices);
-    }, { once: true });
-  });
-}
+async function speak(text) {
+  if (!state.ttsEnabled) return;
+  stopSpeaking();
 
-// Pre-load voices as soon as possible
-if (synth) loadVoices();
+  try {
+    const resp = await fetch('/api/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text }),
+    });
+    if (!resp.ok) return;
 
-// Safari requires a user gesture before speechSynthesis works — unlock on first interaction
-let ttsUnlocked = false;
-function unlockTTS() {
-  if (ttsUnlocked || !synth) return;
-  ttsUnlocked = true;
-  const u = new SpeechSynthesisUtterance('');
-  synth.speak(u);
-}
-document.addEventListener('click', unlockTTS, { once: true });
-document.addEventListener('keydown', unlockTTS, { once: true });
-
-function speak(text) {
-  if (!state.ttsEnabled || !synth) return;
-  synth.cancel();
-  const clean = text.replace(/[*_`#>]/g, '').replace(/\n+/g, ' ').trim();
-  ttsUtterance = new SpeechSynthesisUtterance(clean);
-  ttsUtterance.rate  = 0.92;
-  ttsUtterance.pitch = 1.0;
-  // Use pre-cached voices only — no await so Safari doesn't block audio
-  const preferred = cachedVoices.find(v => /samantha|karen|daniel|moira|rishi/i.test(v.name))
-    || cachedVoices.find(v => v.lang.startsWith('en-') && v.localService)
-    || cachedVoices.find(v => v.lang.startsWith('en'));
-  if (preferred) ttsUtterance.voice = preferred;
-  synth.speak(ttsUtterance);
+    const blob = await resp.blob();
+    const url  = URL.createObjectURL(blob);
+    currentAudio = new Audio(url);
+    currentAudio.play();
+    currentAudio.onended = () => URL.revokeObjectURL(url);
+  } catch (err) {
+    console.warn('TTS error:', err);
+  }
 }
 
 function stopSpeaking() {
-  if (synth) synth.cancel();
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio = null;
+  }
 }
 
 ttsToggle.addEventListener('click', () => {
@@ -395,8 +378,6 @@ ttsToggle.addEventListener('click', () => {
   ttsToggle.classList.toggle('active', state.ttsEnabled);
   ttsLabel.textContent = state.ttsEnabled ? 'Reading aloud' : 'Read aloud';
   if (state.ttsEnabled) {
-    // Speak immediately on click — this is the user gesture Safari needs
-    ttsUnlocked = true;
     speak('Read aloud is now on.');
   } else {
     stopSpeaking();

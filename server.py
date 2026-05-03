@@ -8,6 +8,13 @@ from flask import Flask, Response, jsonify, request, send_from_directory, stream
 app = Flask(__name__, static_folder="public")
 client = anthropic.Anthropic()
 
+# OpenAI TTS — only initialise if key is present
+try:
+    from openai import OpenAI
+    openai_client = OpenAI() if os.environ.get("OPENAI_API_KEY") else None
+except ImportError:
+    openai_client = None
+
 SYSTEM_PROMPT = """You are an elite Human Resources strategist and personal development coach with deep expertise in career design, strengths assessment, and opportunity mapping. Your role is to guide the user through a structured discovery process based on the Ikigai framework — finding the intersection between what they love, what they are good at, what the world needs, and what they can be paid for.
 
 Tone: Warm, direct, and informal. Address the user as "you" but with the closeness of a trusted advisor — never stiff, never generic. Be human.
@@ -79,6 +86,33 @@ def stream_messages(messages, system=SYSTEM_PROMPT, max_tokens=1024):
             "Connection": "keep-alive",
             "Access-Control-Allow-Origin": "*",
         },
+    )
+
+
+@app.route("/api/tts", methods=["POST"])
+def tts():
+    if not openai_client:
+        return jsonify({"error": "TTS not configured"}), 503
+
+    text = request.json.get("text", "").strip()
+    if not text:
+        return jsonify({"error": "No text provided"}), 400
+
+    # Clean markdown and limit length for speed
+    clean = re.sub(r'[*_`#>]', '', text)
+    clean = re.sub(r'\n+', ' ', clean).strip()
+    clean = clean[:900]  # keep responses snappy
+
+    audio = openai_client.audio.speech.create(
+        model="tts-1",
+        voice="nova",   # warm, natural-sounding voice
+        input=clean,
+    )
+
+    return Response(
+        audio.content,
+        mimetype="audio/mpeg",
+        headers={"Content-Type": "audio/mpeg"},
     )
 
 
