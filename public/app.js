@@ -393,18 +393,25 @@ ttsToggle.addEventListener('click', () => {
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
 
+function stopListening() {
+  state.isListening = false;
+  micBtn.classList.remove('listening');
+  micBtn.title = 'Tap to speak';
+  sendBtn.disabled = !userInput.value.trim() || state.isStreaming;
+}
+
 if (SpeechRecognition) {
   recognition = new SpeechRecognition();
-  recognition.continuous      = false;
-  recognition.interimResults  = true;
-  recognition.lang            = 'en-US';
+  recognition.continuous     = false;
+  recognition.interimResults = true;
+  recognition.lang           = navigator.language || 'en-US';
 
   let savedText = '';
 
   recognition.onstart = () => {
     state.isListening = true;
     micBtn.classList.add('listening');
-    micBtn.title = 'Listening… click to stop';
+    micBtn.title = 'Listening… tap to stop';
     savedText = userInput.value;
   };
 
@@ -419,23 +426,31 @@ if (SpeechRecognition) {
 
   recognition.onerror = (e) => {
     console.warn('Speech recognition error:', e.error);
+    if (e.error === 'not-allowed') {
+      alert('Microphone access was denied. Please allow microphone access in your browser settings and try again.');
+    } else if (e.error === 'no-speech') {
+      // silently ignore — user just didn't speak
+    }
     stopListening();
   };
 
   recognition.onend = () => stopListening();
 
-  function stopListening() {
-    state.isListening = false;
-    micBtn.classList.remove('listening');
-    micBtn.title = 'Click to speak';
-    sendBtn.disabled = !userInput.value.trim() || state.isStreaming;
-  }
-
-  micBtn.addEventListener('click', () => {
+  micBtn.addEventListener('click', async () => {
     if (state.isListening) {
       recognition.stop();
-    } else {
-      try { recognition.start(); } catch (e) { console.warn(e); }
+      return;
+    }
+
+    // Request mic permission explicitly on mobile before starting
+    try {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+      }
+      recognition.start();
+    } catch (err) {
+      alert('Microphone access is required. Please allow it in your browser settings.');
+      console.warn('Mic permission error:', err);
     }
   });
 } else {
