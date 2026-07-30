@@ -8,8 +8,14 @@ UPLOAD_DIR = DATA_DIR / "uploads"
 DB_PATH = DATA_DIR / "lexara.db"
 
 # Anthropic
-MODEL = os.environ.get("LEXARA_MODEL", "claude-sonnet-4-6")
-FAST_MODEL = os.environ.get("LEXARA_FAST_MODEL", "claude-haiku-4-5-20251001")
+MODEL = os.environ.get("LEXARA_MODEL", "claude-opus-5")
+
+# Thinking is on by default on current models; `effort` is the supported lever
+# for depth vs. latency and spend. Grid cells are many small, well-scoped
+# extractions, so they run leaner than the long-form surfaces.
+EFFORT = os.environ.get("LEXARA_EFFORT", "high")
+CELL_EFFORT = os.environ.get("LEXARA_CELL_EFFORT", "medium")
+
 HAS_API_KEY = bool(os.environ.get("ANTHROPIC_API_KEY"))
 
 # Limits

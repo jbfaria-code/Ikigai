@@ -271,7 +271,7 @@ def suggest_columns(table_id: str):
         tool_name="propose_columns",
         description="Propose the review columns for this document set.",
         schema=prompts.COLUMN_SUGGEST_SCHEMA,
-        max_tokens=2048,
+        max_tokens=4096,
     )
     return jsonify({"columns": result.get("columns", [])})
 
@@ -438,6 +438,6 @@ def memo(table_id: str):
                 "content": f"Review: {table['name']}\n\n{grid}{instruction}",
             }
         ],
-        max_tokens=4096,
+        max_tokens=8000,
     )
     return jsonify({"memo": text})

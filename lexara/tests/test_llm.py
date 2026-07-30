@@ -76,3 +76,28 @@ def test_missing_api_key_raises_not_configured():
 
 def test_available_is_true_with_an_injected_client(fake_llm):
     assert llm.available() is True
+
+
+def test_requests_never_send_sampling_parameters(fake_llm):
+    """Current models reject temperature/top_p/top_k with a 400."""
+    fake_llm.tool_result = {"ok": True}
+    llm.complete("sys", [{"role": "user", "content": "q"}])
+    llm.complete_structured("sys", [], tool_name="t", description="d", schema={})
+    list(llm.stream("sys", [{"role": "user", "content": "q"}]))
+
+    assert len(fake_llm.calls) == 3
+    for call in fake_llm.calls:
+        assert "temperature" not in call
+        assert "top_p" not in call
+        assert "top_k" not in call
+
+
+def test_effort_is_sent_and_overridable(fake_llm):
+    from app import config
+
+    fake_llm.tool_result = {}
+    llm.complete_structured("sys", [], tool_name="t", description="d", schema={})
+    assert fake_llm.calls[-1]["output_config"] == {"effort": config.EFFORT}
+
+    llm.complete_structured("sys", [], tool_name="t", description="d", schema={}, effort="low")
+    assert fake_llm.calls[-1]["output_config"] == {"effort": "low"}

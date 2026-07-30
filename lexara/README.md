@@ -60,7 +60,7 @@ Without an API key the app still runs — the vault, search, grid, exports and n
 and the model-backed actions return a clear "not configured" message instead of failing obscurely.
 
 ```bash
-pytest                              # 79 tests, no network calls
+pytest                              # 81 tests, no network calls
 ```
 
 ### Configuration
@@ -68,7 +68,9 @@ pytest                              # 79 tests, no network calls
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `ANTHROPIC_API_KEY` | — | Required for review, assistant, playbooks and suggestions |
-| `LEXARA_MODEL` | `claude-sonnet-4-6` | Model used for every call |
+| `LEXARA_MODEL` | `claude-opus-5` | Model used for every call |
+| `LEXARA_EFFORT` | `high` | Reasoning effort for chat, memos and playbook reviews |
+| `LEXARA_CELL_EFFORT` | `medium` | Reasoning effort per review-grid cell |
 | `LEXARA_DATA_DIR` | `lexara/data` | SQLite database and uploaded files |
 | `LEXARA_REVIEW_WORKERS` | `6` | Concurrent review cells in flight |
 | `LEXARA_MAX_UPLOAD_MB` | `25` | Per-file upload limit |
@@ -112,6 +114,12 @@ vocabulary with the clauses that answer them. Swapping in embeddings later means
 **Structured output goes through tool use**, not "reply with JSON". The API validates the shape,
 which matters when hundreds of review cells run unattended. `llm.parse_json` is the fallback for a
 model that answers in prose anyway.
+
+**Depth is tuned with `effort`, not sampling parameters.** Current models reject
+`temperature`/`top_p`/`top_k` outright and think by default, so `llm._tuning` sends
+`output_config.effort` instead and every `max_tokens` budget leaves room for thinking as well as the
+answer. Grid cells run at `medium` — many small, well-scoped extractions — while chat, memos and
+playbook reviews run at the default `high`.
 
 **Grounding is enforced in the prompt and visible in the UI.** Every extraction returns a quote or
 says "Not addressed"; confidence is surfaced on the cell; the source panel highlights the quoted

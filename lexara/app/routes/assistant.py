@@ -147,7 +147,7 @@ def send_message(thread_id: str):
         yield _sse({"type": "sources", "sources": sources})
         parts: list[str] = []
         try:
-            for delta in llm.stream(prompts.ASSISTANT_SYSTEM, messages, max_tokens=3000):
+            for delta in llm.stream(prompts.ASSISTANT_SYSTEM, messages, max_tokens=8000):
                 parts.append(delta)
                 yield _sse({"type": "delta", "text": delta})
         except Exception as exc:  # noqa: BLE001 - reported into the stream

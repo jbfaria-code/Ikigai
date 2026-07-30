@@ -164,7 +164,8 @@ def run_cell(table_id: str, column: dict, document_id: str) -> dict:
             tool_name="extract_answer",
             description="Record the extracted answer, its supporting quote, and your confidence.",
             schema=prompts.REVIEW_CELL_SCHEMA,
-            max_tokens=1024,
+            max_tokens=4096,
+            effort=config.CELL_EFFORT,
         )
         cell = {
             "status": "done",
@@ -236,7 +237,9 @@ def run_playbook(run_id: str, document_id: str, playbook: dict) -> None:
             tool_name="record_review",
             description="Record the playbook review: one finding per rule, plus an overall summary.",
             schema=prompts.PLAYBOOK_SCHEMA,
-            max_tokens=8192,
+            # A full playbook is a dozen-plus findings with redlines, and
+            # max_tokens has to cover the model's thinking as well.
+            max_tokens=16000,
         )
         db.execute(
             "UPDATE playbook_runs SET status = 'done', result = ? WHERE id = ?",

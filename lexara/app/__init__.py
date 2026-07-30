@@ -37,6 +37,7 @@ def create_app() -> Flask:
             {
                 "ok": True,
                 "model": config.MODEL,
+                "effort": config.EFFORT,
                 "llm_configured": llm.available(),
             }
         )

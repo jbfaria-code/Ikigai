@@ -51,6 +51,18 @@ def client():
     return _client
 
 
+def _tuning(effort: str | None) -> dict:
+    """Per-call knobs shared by every request shape.
+
+    Current models reject `temperature`/`top_p`/`top_k` outright, and thinking is
+    on by default — `effort` is the supported way to trade depth against latency
+    and spend. Note `max_tokens` caps thinking *and* answer together, so any
+    caller lowering it has to leave the model room to think first.
+    """
+    level = effort or config.EFFORT
+    return {"output_config": {"effort": level}} if level else {}
+
+
 def _retryable(exc: Exception) -> bool:
     name = type(exc).__name__
     if name in {"RateLimitError", "APIConnectionError", "APITimeoutError", "InternalServerError"}:
@@ -76,16 +88,16 @@ def _with_retries(fn, attempts: int = 3):
     raise LLMError(str(last)) from last
 
 
-def complete(system: str, messages: list[dict], max_tokens: int = 2048,
-             model: str | None = None, temperature: float = 0.0) -> str:
+def complete(system: str, messages: list[dict], max_tokens: int = 4096,
+             model: str | None = None, effort: str | None = None) -> str:
     """Return the concatenated text of a single non-streaming completion."""
     def call():
         return client().messages.create(
             model=model or config.MODEL,
             max_tokens=max_tokens,
-            temperature=temperature,
             system=system,
             messages=messages,
+            **_tuning(effort),
         )
 
     response = _with_retries(call)
@@ -94,8 +106,8 @@ def complete(system: str, messages: list[dict], max_tokens: int = 2048,
 
 
 def complete_structured(system: str, messages: list[dict], tool_name: str,
-                        description: str, schema: dict, max_tokens: int = 2048,
-                        model: str | None = None) -> dict:
+                        description: str, schema: dict, max_tokens: int = 4096,
+                        model: str | None = None, effort: str | None = None) -> dict:
     """Force the model to answer by calling a tool, and return its arguments.
 
     Using tool-use rather than "reply with JSON" means the API validates the
@@ -107,11 +119,11 @@ def complete_structured(system: str, messages: list[dict], tool_name: str,
         return client().messages.create(
             model=model or config.MODEL,
             max_tokens=max_tokens,
-            temperature=0.0,
             system=system,
             messages=messages,
             tools=[tool],
             tool_choice={"type": "tool", "name": tool_name},
+            **_tuning(effort),
         )
 
     response = _with_retries(call)
@@ -127,15 +139,15 @@ def complete_structured(system: str, messages: list[dict], tool_name: str,
     return parsed
 
 
-def stream(system: str, messages: list[dict], max_tokens: int = 2048,
-           model: str | None = None) -> Iterator[str]:
+def stream(system: str, messages: list[dict], max_tokens: int = 8000,
+           model: str | None = None, effort: str | None = None) -> Iterator[str]:
     """Yield text deltas from a streaming completion."""
     with client().messages.stream(
         model=model or config.MODEL,
         max_tokens=max_tokens,
-        temperature=0.0,
         system=system,
         messages=messages,
+        **_tuning(effort),
     ) as response:
         yield from response.text_stream
 

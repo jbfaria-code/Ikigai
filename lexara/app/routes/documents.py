@@ -1,7 +1,7 @@
 """The vault — upload, list, read and delete matter documents."""
 from flask import Blueprint, jsonify, request, send_file
 
-from .. import db, extract, llm, prompts, retrieval, services
+from .. import config, db, extract, llm, prompts, retrieval, services
 
 bp = Blueprint("documents", __name__, url_prefix="/api")
 
@@ -106,7 +106,8 @@ def intake(document_id: str):
         tool_name="catalogue_document",
         description="Record the document's catalogue metadata.",
         schema=prompts.INTAKE_SCHEMA,
-        max_tokens=1024,
+        max_tokens=4096,
+        effort=config.CELL_EFFORT,
     )
     return jsonify(result)
 
