@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lexara — AI workspace for legal teams</title>
+  <meta name="description" content="Review documents in a grid, ask questions across a matter, and measure contracts against your playbook." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234338ca'/%3E%3Cpath d='M10 8v16h12' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/static/css/app.css" />
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ── Rail ───────────────────────────────────────────────── -->
+  <aside class="rail">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">L</span>
+      <span class="brand-name">Lexara</span>
+    </div>
+
+    <div class="rail-section">
+      <div class="rail-label">
+        <span>Matters</span>
+        <button class="icon-btn" id="new-matter" title="New matter" aria-label="New matter">+</button>
+      </div>
+      <ul class="matter-list" id="matter-list"></ul>
+    </div>
+
+    <nav class="rail-nav" id="rail-nav" hidden>
+      <button class="nav-item" data-view="vault">
+        <span class="nav-glyph" aria-hidden="true">▤</span> Vault
+        <span class="nav-count" id="count-documents"></span>
+      </button>
+      <button class="nav-item" data-view="review">
+        <span class="nav-glyph" aria-hidden="true">▦</span> Tabular review
+        <span class="nav-count" id="count-tables"></span>
+      </button>
+      <button class="nav-item" data-view="assistant">
+        <span class="nav-glyph" aria-hidden="true">◈</span> Assistant
+      </button>
+      <button class="nav-item" data-view="playbooks">
+        <span class="nav-glyph" aria-hidden="true">◎</span> Playbook review
+      </button>
+    </nav>
+
+    <div class="rail-foot">
+      <div class="status-dot" id="llm-status" title="Model status"></div>
+      <span id="llm-status-text">checking…</span>
+    </div>
+  </aside>
+
+  <!-- ── Main ───────────────────────────────────────────────── -->
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-titles">
+        <h1 id="view-title">Lexara</h1>
+        <p id="view-subtitle">A workspace for document review, matter Q&amp;A, and contract playbooks.</p>
+      </div>
+      <div class="topbar-actions" id="topbar-actions"></div>
+    </header>
+    <div class="view" id="view"></div>
+  </main>
+</div>
+
+<!-- ── Overlays ─────────────────────────────────────────────── -->
+<div class="drawer-scrim" id="drawer-scrim" hidden></div>
+<aside class="drawer" id="drawer" hidden aria-label="Source panel">
+  <div class="drawer-head">
+    <h2 id="drawer-title">Source</h2>
+    <button class="icon-btn" id="drawer-close" aria-label="Close panel">×</button>
+  </div>
+  <div class="drawer-body" id="drawer-body"></div>
+</aside>
+
+<div class="modal-scrim" id="modal-scrim" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <h2 id="modal-title">Dialog</h2>
+    <div id="modal-body"></div>
+    <div class="modal-actions" id="modal-actions"></div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script type="module" src="/static/js/main.js"></script>
+</body>
+</html>
