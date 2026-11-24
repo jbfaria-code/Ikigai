@@ -1,0 +1,24 @@
+{
+  "Metadata": {
+    "title": "{brand} · Personal cards to print at home",
+    "description": "Personal greeting cards that say something true about them, and fold right the first time. No account. Nothing kept."
+  },
+  "Landing": {
+    "promise": "Cards that say something true about them, and fold right the first time. Nothing kept.",
+    "cta": "Create a card",
+    "noAccount": "No account needed."
+  },
+  "Create": {
+    "title": "Create a card",
+    "comingSoon": "The card wizard is coming soon."
+  },
+  "LocaleSwitcher": {
+    "label": "Language",
+    "en": "English",
+    "pt": "Português"
+  },
+  "Footer": {
+    "privacy": "Privacy",
+    "terms": "Terms"
+  }
+}

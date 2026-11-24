@@ -1,0 +1,24 @@
+{
+  "Metadata": {
+    "title": "{brand} · Postais personalizados para imprimir em casa",
+    "description": "Postais personalizados que dizem algo verdadeiro sobre quem os recebe e que dobram bem à primeira. Sem conta. Nada fica guardado."
+  },
+  "Landing": {
+    "promise": "Postais que dizem algo verdadeiro sobre quem os recebe e que dobram bem à primeira. Nada fica guardado.",
+    "cta": "Criar um postal",
+    "noAccount": "Não precisa de criar conta."
+  },
+  "Create": {
+    "title": "Criar um postal",
+    "comingSoon": "O assistente de criação de postais estará disponível em breve."
+  },
+  "LocaleSwitcher": {
+    "label": "Idioma",
+    "en": "English",
+    "pt": "Português"
+  },
+  "Footer": {
+    "privacy": "Privacidade",
+    "terms": "Termos"
+  }
+}

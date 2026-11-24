@@ -1,0 +1,61 @@
+name: cards CI
+
+on:
+  push:
+    paths: ["cards/**", ".github/workflows/cards-ci.yml"]
+  pull_request:
+    paths: ["cards/**", ".github/workflows/cards-ci.yml"]
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: cards
+
+jobs:
+  checks:
+    name: lint · typecheck · unit · pdf
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: cards/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: cards/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm format:check
+      - run: pnpm typecheck
+      - run: pnpm test:unit
+      - run: pnpm test:pdf
+
+  e2e:
+    name: e2e (Playwright)
+    runs-on: ubuntu-latest
+    env:
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: cards/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: cards/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm build
+      - run: pnpm test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: cards/playwright-report
+          retention-days: 7
